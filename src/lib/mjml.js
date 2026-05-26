@@ -16,8 +16,8 @@ export function generateMJML(blocks, subject) {
   <mj-head>
     <mj-title>${escapeXml(subject || "Newsletter")}</mj-title>
     <mj-attributes>
-      <mj-all font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" />
-      <mj-text line-height="1.55" />
+      <mj-all font-family="Inter, Montserrat, sans-serif" />
+      <mj-text font-size="17px" font-weight="400" line-height="1.55" color="#000000" letter-spacing="0" />
     </mj-attributes>
     <mj-style>
       a { color: #b45309; }

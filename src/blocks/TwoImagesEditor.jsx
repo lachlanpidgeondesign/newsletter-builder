@@ -11,12 +11,7 @@ export default function TwoImagesEditor({ block, update }) {
             alt={block[`${side}Alt`]}
             onChange={({ url, alt }) => update({ [`${side}Url`]: url, [`${side}Alt`]: alt })}
           />
-          <Editable
-            value={block[`${side}Caption`]}
-            onChange={(v) => update({ [`${side}Caption`]: v })}
-            className="text-xs text-stone-600 italic"
-            placeholder="Caption"
-          />
+
         </div>
       ))}
     </div>

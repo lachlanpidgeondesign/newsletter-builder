@@ -30,10 +30,10 @@ export const BLOCK_TYPES = {
     toMJML: (b) => `
       <mj-section padding="24px 16px">
         <mj-column>
-          <mj-text font-family="Georgia, 'Times New Roman', serif" font-size="24px" font-weight="700" line-height="1.25" color="#111111" padding-bottom="8px">
+          <mj-text font-size="24px" font-weight="700" line-height="1.25" color="#000000" padding-bottom="8px">
             ${esc(b.heading)}
           </mj-text>
-          <mj-text font-size="16px" line-height="1.55" color="#333333">
+          <mj-text>
             ${escMultiline(b.body)}
           </mj-text>
         </mj-column>
@@ -41,7 +41,7 @@ export const BLOCK_TYPES = {
   },
 
   image_text: {
-    label: "Image + Text",
+    label: "Text + Image",
     icon: ImageIcon,
     Editor: ImageTextEditor,
     create: () => ({
@@ -50,7 +50,7 @@ export const BLOCK_TYPES = {
       alt: "",
       heading: "Section title",
       body: "Paragraph text sitting next to (or below, on mobile) your image.",
-      side: "left",
+      side: "right",
     }),
     toMJML: (b) => {
       const imageCol = b.imageUrl
@@ -59,10 +59,10 @@ export const BLOCK_TYPES = {
            </mj-column>`
         : `<mj-column width="50%"><mj-spacer height="1px" /></mj-column>`;
       const textCol = `<mj-column width="50%">
-          <mj-text font-family="Georgia, 'Times New Roman', serif" font-size="20px" font-weight="700" line-height="1.25" color="#111111" padding-bottom="8px">
+          <mj-text font-size="20px" font-weight="700" line-height="1.25" color="#000000" padding-bottom="8px">
             ${esc(b.heading)}
           </mj-text>
-          <mj-text font-size="15px" line-height="1.55" color="#333333">
+          <mj-text>
             ${escMultiline(b.body)}
           </mj-text>
         </mj-column>`;
@@ -81,21 +81,20 @@ export const BLOCK_TYPES = {
       type: "two_images",
       leftUrl: "",
       leftAlt: "",
-      leftCaption: "Left caption",
+      leftUrl: "",
+      leftAlt: "",
       rightUrl: "",
       rightAlt: "",
-      rightCaption: "Right caption",
     }),
     toMJML: (b) => {
-      const col = (url, alt, caption) => `
+      const col = (url, alt) => `
         <mj-column width="50%">
-          ${url ? `<mj-image src="${esc(url)}" alt="${esc(alt)}" padding="0 0 8px 0" />` : `<mj-spacer height="1px" />`}
-          ${caption ? `<mj-text font-size="13px" line-height="1.4" color="#666666" font-style="italic" padding="0">${esc(caption)}</mj-text>` : ""}
+          ${url ? `<mj-image src="${esc(url)}" alt="${esc(alt)}" padding="0" />` : `<mj-spacer height="1px" />`}
         </mj-column>`;
       return `
       <mj-section padding="24px 16px">
-        ${col(b.leftUrl, b.leftAlt, b.leftCaption)}
-        ${col(b.rightUrl, b.rightAlt, b.rightCaption)}
+        ${col(b.leftUrl, b.leftAlt)}
+        ${col(b.rightUrl, b.rightAlt)}
       </mj-section>`;
     },
   },
