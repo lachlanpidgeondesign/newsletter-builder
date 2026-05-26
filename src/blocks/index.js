@@ -1,8 +1,9 @@
-import { Type, Image as ImageIcon, Columns2, ImagePlus } from "lucide-react";
+import { Type, Image as ImageIcon, Columns2, ImagePlus, CodeXml } from "lucide-react";
 import HeadingTextEditor from "./HeadingTextEditor.jsx";
 import ImageTextEditor from "./ImageTextEditor.jsx";
 import TwoImagesEditor from "./TwoImagesEditor.jsx";
 import SingleImageEditor from "./SingleImageEditor.jsx";
+import CustomHtmlEditor from "./CustomHtmlEditor.jsx";
 
 // Escape user text for MJML attribute and content contexts.
 // MJML is parsed as XML, so &, <, >, ", ' all need escaping inside tags.
@@ -120,5 +121,21 @@ export const BLOCK_TYPES = {
         </mj-column>
       </mj-section>`;
     },
+  },
+
+  custom_html: {
+    label: "Custom HTML",
+    icon: CodeXml,
+    Editor: CustomHtmlEditor,
+    create: () => ({
+      type: "custom_html",
+      html: "",
+    }),
+    toMJML: (b) => b.html ? `
+      <mj-section padding="24px 16px">
+        <mj-column>
+          <mj-text>${b.html}</mj-text>
+        </mj-column>
+      </mj-section>` : "",
   },
 };
