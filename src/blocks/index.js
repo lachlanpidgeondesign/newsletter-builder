@@ -31,7 +31,7 @@ export const BLOCK_TYPES = {
     toMJML: (b) => `
       <mj-section padding="24px 16px">
         <mj-column>
-          <mj-text font-size="24px" font-weight="700" line-height="1.25" color="#000000" padding-bottom="8px">
+          <mj-text font-size="20px" font-weight="700" line-height="1.25" color="#000000" padding-bottom="8px">
             ${esc(b.heading)}
           </mj-text>
           <mj-text>
