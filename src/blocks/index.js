@@ -54,15 +54,15 @@ export const BLOCK_TYPES = {
     }),
     toMJML: (b) => {
       const imageCol = b.imageUrl
-        ? `<mj-column width="50%">
+        ? `<mj-column width="50%" padding-${b.side === 'left' ? 'right' : 'left'}="8px">
              <mj-image src="${esc(b.imageUrl)}" alt="${esc(b.alt)}" padding="0" />
            </mj-column>`
-        : `<mj-column width="50%"><mj-spacer height="1px" /></mj-column>`;
-      const textCol = `<mj-column width="50%">
+        : `<mj-column width="50%" padding-${b.side === 'left' ? 'right' : 'left'}="8px"><mj-spacer height="1px" /></mj-column>`;
+      const textCol = `<mj-column width="50%" padding-${b.side === 'left' ? 'left' : 'right'}="8px">
           <mj-text font-size="20px" font-weight="700" line-height="1.25" color="#000000" padding-bottom="8px">
             ${esc(b.heading)}
           </mj-text>
-          <mj-text padding-top="0">
+          <mj-text>
             ${escMultiline(b.body)}
           </mj-text>
         </mj-column>`;

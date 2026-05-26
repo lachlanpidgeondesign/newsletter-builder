@@ -17,7 +17,7 @@ export function generateMJML(blocks, subject) {
     <mj-title>${escapeXml(subject || "Newsletter")}</mj-title>
     <mj-attributes>
       <mj-all font-family="Inter, Montserrat, sans-serif" />
-      <mj-text font-size="17px" font-weight="400" line-height="1.55" color="#000000" letter-spacing="0" />
+      <mj-text font-size="17px" font-weight="400" line-height="1.55" color="#000000" letter-spacing="0" padding="0" />
     </mj-attributes>
     <mj-style>
       a { color: #b45309; }
