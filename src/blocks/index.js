@@ -1,7 +1,8 @@
-import { Type, Image as ImageIcon, Columns2 } from "lucide-react";
+import { Type, Image as ImageIcon, Columns2, ImagePlus } from "lucide-react";
 import HeadingTextEditor from "./HeadingTextEditor.jsx";
 import ImageTextEditor from "./ImageTextEditor.jsx";
 import TwoImagesEditor from "./TwoImagesEditor.jsx";
+import SingleImageEditor from "./SingleImageEditor.jsx";
 
 // Escape user text for MJML attribute and content contexts.
 // MJML is parsed as XML, so &, <, >, ", ' all need escaping inside tags.
@@ -95,6 +96,28 @@ export const BLOCK_TYPES = {
       <mj-section padding="24px 16px">
         ${col(b.leftUrl, b.leftAlt, 'left')}
         ${col(b.rightUrl, b.rightAlt, 'right')}
+      </mj-section>`;
+    },
+  },
+
+  single_image: {
+    label: "Single Image",
+    icon: ImagePlus,
+    Editor: SingleImageEditor,
+    create: () => ({
+      type: "single_image",
+      imageUrl: "",
+      alt: "",
+    }),
+    toMJML: (b) => {
+      const img = b.imageUrl
+        ? `<mj-image src="${esc(b.imageUrl)}" alt="${esc(b.alt)}" width="360px" padding="0" />`
+        : `<mj-spacer height="1px" />`;
+      return `
+      <mj-section padding="24px 16px">
+        <mj-column>
+          ${img}
+        </mj-column>
       </mj-section>`;
     },
   },
