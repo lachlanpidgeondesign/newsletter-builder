@@ -62,7 +62,7 @@ export const BLOCK_TYPES = {
           <mj-text font-size="20px" font-weight="700" line-height="1.25" color="#000000" padding-bottom="8px">
             ${esc(b.heading)}
           </mj-text>
-          <mj-text>
+          <mj-text padding-top="0">
             ${escMultiline(b.body)}
           </mj-text>
         </mj-column>`;
@@ -87,14 +87,14 @@ export const BLOCK_TYPES = {
       rightAlt: "",
     }),
     toMJML: (b) => {
-      const col = (url, alt) => `
-        <mj-column width="50%">
+      const col = (url, alt, side) => `
+        <mj-column width="50%" padding-${side === 'left' ? 'right' : 'left'}="8px">
           ${url ? `<mj-image src="${esc(url)}" alt="${esc(alt)}" padding="0" />` : `<mj-spacer height="1px" />`}
         </mj-column>`;
       return `
       <mj-section padding="24px 16px">
-        ${col(b.leftUrl, b.leftAlt)}
-        ${col(b.rightUrl, b.rightAlt)}
+        ${col(b.leftUrl, b.leftAlt, 'left')}
+        ${col(b.rightUrl, b.rightAlt, 'right')}
       </mj-section>`;
     },
   },
