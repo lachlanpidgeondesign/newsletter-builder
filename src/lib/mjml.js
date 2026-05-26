@@ -111,6 +111,12 @@ export function generateMJML(blocks, subject) {
     <mj-style>
       a { color: #285cff; }
     </mj-style>
+    <mj-style inline="inline">
+      @media only screen and (max-width: 480px) {
+        .col-gap-reset { padding-left: 0 !important; padding-right: 0 !important; }
+        .col-gap-mobile { padding-bottom: 16px !important; }
+      }
+    </mj-style>
     <mj-preview>Play today's Trace &amp; brand-new Relink – plus GuessWord, Master Quiz, and more!</mj-preview>
   </mj-head>
   <mj-body background-color="#EEF0FF" width="600px">

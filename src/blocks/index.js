@@ -55,11 +55,11 @@ export const BLOCK_TYPES = {
     }),
     toMJML: (b) => {
       const imageCol = b.imageUrl
-        ? `<mj-column width="50%" padding-${b.side === 'left' ? 'right' : 'left'}="8px">
+        ? `<mj-column width="50%" padding-${b.side === 'left' ? 'right' : 'left'}="8px" css-class="col-gap-reset${b.side === 'left' ? ' col-gap-mobile' : ''}">
              <mj-image src="${esc(b.imageUrl)}" alt="${esc(b.alt)}" padding="0" />
            </mj-column>`
-        : `<mj-column width="50%" padding-${b.side === 'left' ? 'right' : 'left'}="8px"><mj-spacer height="1px" /></mj-column>`;
-      const textCol = `<mj-column width="50%" padding-${b.side === 'left' ? 'left' : 'right'}="8px">
+        : `<mj-column width="50%" padding-${b.side === 'left' ? 'right' : 'left'}="8px" css-class="col-gap-reset${b.side === 'left' ? ' col-gap-mobile' : ''}"><mj-spacer height="1px" /></mj-column>`;
+      const textCol = `<mj-column width="50%" padding-${b.side === 'left' ? 'left' : 'right'}="8px" css-class="col-gap-reset${b.side !== 'left' ? ' col-gap-mobile' : ''}">
           <mj-text font-size="20px" font-weight="700" line-height="1.25" color="#000000" padding-bottom="8px">
             ${esc(b.heading)}
           </mj-text>
@@ -89,7 +89,7 @@ export const BLOCK_TYPES = {
     }),
     toMJML: (b) => {
       const col = (url, alt, side) => `
-        <mj-column width="50%" padding-${side === 'left' ? 'right' : 'left'}="8px">
+        <mj-column width="50%" padding-${side === 'left' ? 'right' : 'left'}="8px" css-class="col-gap-reset${side === 'left' ? ' col-gap-mobile' : ''}">
           ${url ? `<mj-image src="${esc(url)}" alt="${esc(alt)}" padding="0" />` : `<mj-spacer height="1px" />`}
         </mj-column>`;
       return `
