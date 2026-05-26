@@ -33,10 +33,10 @@ export const BLOCK_TYPES = {
       <mj-section padding="24px 16px">
         <mj-column>
           <mj-text font-size="20px" font-weight="700" line-height="1.25" color="#000000" padding-bottom="8px">
-            ${esc(b.heading)}
+            ${b.heading}
           </mj-text>
           <mj-text>
-            ${escMultiline(b.body)}
+            ${b.body}
           </mj-text>
         </mj-column>
       </mj-section>`,
@@ -62,10 +62,10 @@ export const BLOCK_TYPES = {
         : `<mj-column width="50%" padding-${b.side === 'left' ? 'right' : 'left'}="8px" css-class="col-gap-reset${b.side === 'left' ? ' col-gap-mobile' : ''}"><mj-spacer height="1px" /></mj-column>`;
       const textCol = `<mj-column width="50%" padding-${b.side === 'left' ? 'left' : 'right'}="8px" css-class="col-gap-reset${b.side !== 'left' ? ' col-gap-mobile' : ''}">
           <mj-text font-size="20px" font-weight="700" line-height="1.25" color="#000000" padding-bottom="8px">
-            ${esc(b.heading)}
+            ${b.heading}
           </mj-text>
           <mj-text>
-            ${escMultiline(b.body)}
+            ${b.body}
           </mj-text>
         </mj-column>`;
       return `
