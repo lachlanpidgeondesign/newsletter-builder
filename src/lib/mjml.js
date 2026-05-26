@@ -100,7 +100,6 @@ export function generateMJML(blocks, subject) {
   <mj-head>
     <mj-title>${escapeXml(subject || "Your Daily Puzzles")}</mj-title>
     <mj-font name="Literata" href="https://fonts.googleapis.com/css2?family=Literata:wght@800&amp;display=swap" />
-    <mj-font name="Inter" href="https://fonts.googleapis.com/css2?family=Inter:wght@700&amp;display=swap" />
     <mj-attributes>
       <mj-all font-family="Inter, Montserrat, sans-serif" />
       <mj-section background-color="#ffffff" />
