@@ -19,26 +19,24 @@ const LOCKED_FOOTER = `
       </mj-column>
     </mj-section>
 
-    <!-- Featured games: Trace + Relink -->
-    <mj-section background-color="#ffffff" padding="0 16px 28px 16px">
-      <mj-column width="272px" padding="0" css-class="trace-card">
-        <mj-raw><div style="background-color:#FEF7EC;border:1px solid #F8CD8B;border-radius:12px;overflow:hidden;"></mj-raw>
-        <mj-text font-family="'Literata',Inter,Arial,Helvetica,sans-serif" font-size="17px" font-weight="800" color="#000000" padding="10px 12px 0 12px" line-height="1.2">Trace</mj-text>
-        <mj-text font-family="Arial,Helvetica,sans-serif" font-size="12px" color="#333333" padding="4px 12px 8px 12px" line-height="1.4">Can you beat the clock?</mj-text>
-        <mj-image src="https://i.dailymail.co.uk/i/pix/PuzzleReminder/Trace_260526.png" alt="Today's Trace Puzzle" padding="0" fluid-on-mobile="true" />
-        <mj-button href="https://www.dailymail.co.uk/games/game/index.html?build=15.0.3&amp;game=word-flow&amp;type=aW50ZWdyYXRpb24x" background-color="#191919" border-radius="50px" font-family="Arial,Helvetica,sans-serif" font-size="14px" font-weight="700" color="#ffffff" padding="12px" inner-padding="12px 24px">Play Trace &#8594;</mj-button>
-        <mj-raw></div></mj-raw>
-      </mj-column>
-      <mj-column width="24px" padding="0"><mj-spacer height="1px" /></mj-column>
-      <mj-column width="272px" padding="0" css-class="relink-card">
-        <mj-raw><div style="background-color:#EEF0FF;border:1px solid #9AA3FF;border-radius:12px;overflow:hidden;"></mj-raw>
-        <mj-text padding="10px 12px 0 12px" line-height="1.2"><span style="font-family:'Literata',Inter,Arial,Helvetica,sans-serif;font-size:17px;font-weight:800;color:#000000;">Relink</span> <span style="display:inline-block;background-color:#191919;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:800;padding:3px 6px;border-radius:4px;text-transform:uppercase;float:right;">NEW</span></mj-text>
-        <mj-text font-family="Arial,Helvetica,sans-serif" font-size="12px" color="#333333" padding="4px 12px 8px 12px" line-height="1.4">Find the imposters</mj-text>
-        <mj-image src="https://i.dailymail.co.uk/i/pix/PuzzleReminder/Trace_260526.png" alt="Relink – find the secret link" padding="0" fluid-on-mobile="true" />
-        <mj-button href="https://www.dailymail.co.uk/games/game/index.html?build=15.0.3&amp;game=relink&amp;type=default" background-color="#191919" border-radius="50px" font-family="Arial,Helvetica,sans-serif" font-size="14px" font-weight="700" color="#ffffff" padding="12px" inner-padding="12px 24px">Play Relink &#8594;</mj-button>
-        <mj-raw></div></mj-raw>
-      </mj-column>
-    </mj-section>
+<!-- Featured games: Trace + Relink -->
+<mj-section background-color="#ffffff" padding="0 16px 28px 16px">
+  <mj-column width="48%" padding="0" background-color="#FEF7EC" border="1px solid #F8CD8B" border-radius="12px" inner-border-radius="12px">
+    <mj-text font-family="'Literata',Inter,Arial,Helvetica,sans-serif" font-size="17px" font-weight="800" color="#000000" padding="10px 12px 0 12px" line-height="1.2">Trace</mj-text>
+    <mj-text font-family="Arial,Helvetica,sans-serif" font-size="12px" color="#333333" padding="4px 12px 8px 12px" line-height="1.4">Can you beat the clock?</mj-text>
+    <mj-image src="https://i.dailymail.co.uk/i/pix/PuzzleReminder/Trace_260526.png" alt="Today's Trace Puzzle" padding="0" fluid-on-mobile="true" />
+    <mj-button href="https://www.dailymail.co.uk/games/game/index.html?build=15.0.3&amp;game=word-flow&amp;type=aW50ZWdyYXRpb24x" background-color="#191919" border-radius="50px" font-family="Arial,Helvetica,sans-serif" font-size="14px" font-weight="700" color="#ffffff" padding="12px" inner-padding="12px 24px">Play Trace &#8594;</mj-button>
+  </mj-column>
+  <mj-column width="4%" padding="0">
+    <mj-spacer height="1px" />
+  </mj-column>
+  <mj-column width="48%" padding="0" background-color="#EEF0FF" border="1px solid #9AA3FF" border-radius="12px" inner-border-radius="12px">
+        <mj-text padding="10px 12px 0 12px" line-height="1.2"><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td valign="middle"><p style="margin:0;font-family:'Literata',Inter,Arial,Helvetica,sans-serif;font-size:17px;font-weight:800;color:#000000;display:inline;">Relink</p></td><td valign="middle" style="padding-left:6px;"><span style="display:inline-block;background-color:#191919;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:800;padding:3px 6px;border-radius:4px;text-transform:uppercase;">NEW</span></td></tr></table></mj-text>
+    <mj-text font-family="Arial,Helvetica,sans-serif" font-size="12px" color="#333333" padding="4px 12px 8px 12px" line-height="1.4">Find the imposters</mj-text>
+    <mj-image src="https://i.dailymail.co.uk/i/pix/PuzzleReminder/Trace_260526.png" alt="Relink – find the secret link" padding="0" fluid-on-mobile="true" />
+    <mj-button href="https://www.dailymail.co.uk/games/game/index.html?build=15.0.3&amp;game=relink&amp;type=default" background-color="#191919" border-radius="50px" font-family="Arial,Helvetica,sans-serif" font-size="14px" font-weight="700" color="#ffffff" padding="12px" inner-padding="12px 24px">Play Relink &#8594;</mj-button>
+  </mj-column>
+</mj-section>
 
     <!-- About Relink blurb -->
     <mj-section background-color="#ffffff" padding="0 16px 28px 16px">
