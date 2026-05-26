@@ -117,16 +117,83 @@ function CanvasDropArea({ children, isEmpty }) {
   );
 }
 
+// ---------- Locked section previews ----------
+function LockedHeader() {
+  return (
+    <div className="relative mb-3">
+      <div className="bg-[#594FE6] rounded-t-xl p-7 flex justify-center">
+        <img
+          src="https://i.dailymail.co.uk/i/pix/2026/04/01/DMplusGames-white.png"
+          alt="Daily Mail Games"
+          className="h-7"
+        />
+      </div>
+      <div className="absolute top-2 right-2 bg-white/90 text-[10px] text-stone-500 px-2 py-0.5 rounded font-medium">
+        Locked
+      </div>
+    </div>
+  );
+}
+
+function LockedFooter() {
+  const games = [
+    { name: "GuessWord", color: "#FEF7EC", border: "#F8CD8B" },
+    { name: "Colour Connect", color: "#EEF0FF", border: "#9AA3FF", badge: "NEW" },
+    { name: "Master Quiz", color: "#E5FAF5", border: "#66E0C4" },
+    { name: "Quick Crossword", color: "#FEF7EC", border: "#F8CD8B" },
+    { name: "Mini Sudoku", color: "#FBEAF2", border: "#E583B1" },
+  ];
+  return (
+    <div className="relative mt-3">
+      <div className="bg-white rounded-b-xl p-6 space-y-4 opacity-80">
+        <h2 className="text-center text-xl font-extrabold text-stone-900" style={{ fontFamily: "'Literata', Inter, sans-serif" }}>
+          Today&apos;s Puzzles
+        </h2>
+        <p className="text-center text-sm text-stone-600">
+          Your daily dose of brain-teasing fun – two great games to play today.
+        </p>
+        <div className="flex gap-3">
+          <div className="flex-1 rounded-xl border p-3 text-center" style={{ backgroundColor: "#FEF7EC", borderColor: "#F8CD8B" }}>
+            <p className="font-extrabold text-sm" style={{ fontFamily: "'Literata', Inter, sans-serif" }}>Trace</p>
+            <p className="text-xs text-stone-500 mt-1">Can you beat the clock?</p>
+          </div>
+          <div className="flex-1 rounded-xl border p-3 text-center" style={{ backgroundColor: "#EEF0FF", borderColor: "#9AA3FF" }}>
+            <p className="font-extrabold text-sm" style={{ fontFamily: "'Literata', Inter, sans-serif" }}>Relink <span className="text-[10px] bg-stone-900 text-white px-1.5 py-0.5 rounded ml-1 uppercase">New</span></p>
+            <p className="text-xs text-stone-500 mt-1">Find the imposters</p>
+          </div>
+        </div>
+        <hr className="border-stone-200" />
+        <p className="text-center text-sm font-extrabold text-stone-900" style={{ fontFamily: "'Literata', Inter, sans-serif" }}>More popular games</p>
+        <div className="space-y-2">
+          {games.map((g) => (
+            <div key={g.name} className="flex items-center gap-3 rounded-xl border px-3 py-2" style={{ backgroundColor: g.color, borderColor: g.border }}>
+              <div className="w-8 h-8 rounded" style={{ backgroundColor: g.border }} />
+              <span className="text-xs font-bold text-stone-800">{g.name}</span>
+              {g.badge && <span className="text-[9px] bg-stone-900 text-white px-1 py-0.5 rounded uppercase">{g.badge}</span>}
+            </div>
+          ))}
+        </div>
+        <div className="text-center pt-2">
+          <span className="inline-block bg-stone-900 text-white text-xs font-bold px-6 py-2.5 rounded-full">Play now →</span>
+        </div>
+      </div>
+      <div className="absolute top-2 right-2 bg-white/90 text-[10px] text-stone-500 px-2 py-0.5 rounded font-medium">
+        Locked
+      </div>
+    </div>
+  );
+}
+
 // ---------- App ----------
 const STARTER_BLOCK = {
   id: "starter",
   ...BLOCK_TYPES.heading_text.create(),
-  heading: "This Week in Games",
-  body: "Welcome to the issue. Drag blocks from the left to start building, and click any text to edit it inline.",
+  heading: "Welcome to Today's Edition",
+  body: "We've got a great selection of puzzles for you today. Drag blocks from the left to add more content above the games section.",
 };
 
 export default function App() {
-  const [subject, setSubject] = useState("This Week in Games");
+  const [subject, setSubject] = useState("Your Daily Puzzles");
   const [blocks, setBlocks] = useState([STARTER_BLOCK]);
   const [view, setView] = useState("edit");
   const [activeDrag, setActiveDrag] = useState(null);
@@ -360,6 +427,7 @@ export default function App() {
           <main className="flex-1 p-8 flex justify-center">
             {view === "edit" && (
               <div className="w-full max-w-2xl">
+                <LockedHeader />
                 <CanvasDropArea isEmpty={blocks.length === 0}>
                   <SortableContext
                     items={blocks.map((b) => b.id)}
@@ -380,6 +448,7 @@ export default function App() {
                     </div>
                   )}
                 </CanvasDropArea>
+                <LockedFooter />
               </div>
             )}
 
