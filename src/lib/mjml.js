@@ -110,11 +110,9 @@ export function generateMJML(blocks, subject) {
     </mj-attributes>
     <mj-style>
       a { color: #285cff; }
-    </mj-style>
-    <mj-style inline="inline">
       @media only screen and (max-width: 480px) {
-        .col-gap-reset { padding-left: 0 !important; padding-right: 0 !important; }
-        .col-gap-mobile { padding-bottom: 16px !important; }
+        .col-gap-reset > table > tbody > tr > td { padding-left: 0 !important; padding-right: 0 !important; }
+        .col-gap-mobile > table > tbody > tr > td { padding-bottom: 16px !important; }
       }
     </mj-style>
     <mj-preview>Play today's Trace &amp; brand-new Relink – plus GuessWord, Master Quiz, and more!</mj-preview>
