@@ -8,6 +8,12 @@ const LOCKED_HEADER = `
         <mj-image src="https://i.dailymail.co.uk/i/pix/2026/04/01/DMplusGames-white.png" width="160px" alt="Daily Mail Games" padding="0" />
       </mj-column>
     </mj-section>
+    <!-- Games Channel link -->
+    <mj-section background-color="#ffffff" padding="10px 16px 0 16px">
+      <mj-column>
+        <mj-text align="right" font-family="Inter, Montserrat, sans-serif" font-size="14px" font-weight="400" color="#000000" padding="0"><a href="https://www.dailymail.com/games/index.html" target="_blank" style="color:#000000;text-decoration:underline;">Games Channel</a></mj-text>
+      </mj-column>
+    </mj-section>
 <!-- Byline section -->
 <mj-section background-color="#ffffff" padding="16px 16px 0 16px" text-align="left">
   <mj-column padding="0">

@@ -1,9 +1,10 @@
-import { Type, Image as ImageIcon, Columns2, ImagePlus, CodeXml } from "lucide-react";
+import { Type, Image as ImageIcon, Columns2, ImagePlus, CodeXml, Gamepad2 } from "lucide-react";
 import HeadingTextEditor from "./HeadingTextEditor.jsx";
 import ImageTextEditor from "./ImageTextEditor.jsx";
 import TwoImagesEditor from "./TwoImagesEditor.jsx";
 import SingleImageEditor from "./SingleImageEditor.jsx";
 import CustomHtmlEditor from "./CustomHtmlEditor.jsx";
+import GamePromoEditor from "./GamePromoEditor.jsx";
 
 // Escape user text for MJML attribute and content contexts.
 // MJML is parsed as XML, so &, <, >, ", ' all need escaping inside tags.
@@ -86,6 +87,13 @@ const sanitizeRichText = (html = "") => {
 };
 
 const sectionPadding = (isFirst = false) => `${isFirst ? 24 : 0}px 16px 24px 16px`;
+
+const GAME_COLORS = {
+  orange: { bg: "#FEF7EC", border: "#F8CD8B", chevron: "#926725" },
+  pink:   { bg: "#FBEAF2", border: "#E583B1", chevron: "#7F1D4B" },
+  purple: { bg: "#EEF0FF", border: "#9AA3FF", chevron: "#343D99" },
+  green:  { bg: "#E5FAF5", border: "#66E0C4", chevron: "#007A5E" },
+};
 
 export const BLOCK_TYPES = {
   heading_text: {
@@ -217,5 +225,38 @@ export const BLOCK_TYPES = {
           <mj-text>${b.html}</mj-text>
         </mj-column>
       </mj-section>` : "",
+  },
+
+  game_promo: {
+    label: "Games Promo",
+    icon: Gamepad2,
+    Editor: GamePromoEditor,
+    create: () => ({
+      type: "game_promo",
+      gameName: "",
+      description: "",
+      linkUrl: "",
+      svgUrl: "",
+      color: "orange",
+      showBadge: false,
+    }),
+    toMJML: (b, opts = {}) => {
+      const c = GAME_COLORS[b.color] || GAME_COLORS.orange;
+      const name = esc(b.gameName || "Game");
+      const desc = esc(b.description || "");
+      const href = esc(b.linkUrl || "#");
+      const badge = b.showBadge
+        ? ` <span style="display:inline-block;background-color:#191919;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:800;padding:3px 6px;border-radius:4px;text-transform:uppercase;vertical-align:middle;white-space:nowrap;">NEW</span>`
+        : "";
+      const icon = b.svgUrl
+        ? `<img src="${esc(b.svgUrl)}" width="48" height="48" alt="${name}" style="display:block;" />`
+        : `<span style="font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;color:#ffffff;">&#9654;</span>`;
+      return `
+      <mj-section padding="${sectionPadding(opts.isFirst)}">
+        <mj-column>
+          <mj-text padding="0"><a href="${href}" style="display:block;text-decoration:none;" target="_blank"><div style="background-color:${c.bg};border-radius:12px;border:1px solid ${c.border};overflow:hidden;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td style="padding:12px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td width="84" valign="middle" style="padding:0;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="72"><tr><td width="72" height="72" align="center" valign="middle" style="background-color:${c.border};border-radius:8px;">${icon}</td></tr></table></td><td valign="middle"><p style="margin:0 0 4px 0;font-family:'Literata',Inter,Arial,Helvetica,sans-serif;font-size:18px;font-weight:800;color:#1a1a2e;line-height:1.3;">${name}${badge}</p><p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:400;color:#333333;line-height:1.4;">${desc}</p></td><td width="20" valign="middle" align="right"><span style="font-family:Arial,Helvetica,sans-serif;font-size:18px;color:${c.chevron};">&#8250;</span></td></tr></table></td></tr></table></div></a></mj-text>
+        </mj-column>
+      </mj-section>`;
+    },
   },
 };
