@@ -88,19 +88,68 @@ function FormatToolbar({ containerRef }) {
 export default function Editable({ value, onChange, className = "", multiline = false, placeholder = "" }) {
   const ref = useRef(null);
   const wrapperRef = useRef(null);
-  const lastProp = useRef(value);
+
+  const sanitizePastedHtml = useCallback((html) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    const allowedInline = new Set(["b", "strong", "i", "em", "u", "s", "strike", "a", "br"]);
+    const allowedBlock = new Set(["p", "div", "ul", "ol", "li"]);
+
+    const escapeHtml = (str) =>
+      str
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+
+    const isSafeUrl = (url) => /^(https?:|mailto:|tel:|\/|#)/i.test(url);
+
+    const sanitizeNode = (node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return escapeHtml(node.textContent || "");
+      }
+
+      if (node.nodeType !== Node.ELEMENT_NODE) {
+        return "";
+      }
+
+      const tag = node.tagName.toLowerCase();
+      const children = Array.from(node.childNodes).map(sanitizeNode).join("");
+
+      if (allowedInline.has(tag)) {
+        if (tag === "br") return "<br>";
+        if (tag === "a") {
+          const href = (node.getAttribute("href") || "").trim();
+          if (!href || !isSafeUrl(href)) return children;
+          return `<a href="${escapeHtml(href)}">${children}</a>`;
+        }
+        return `<${tag}>${children}</${tag}>`;
+      }
+
+      if (allowedBlock.has(tag)) {
+        return `<${tag}>${children}</${tag}>`;
+      }
+
+      // Drop unsupported tags but keep their text/children.
+      return children;
+    };
+
+    return Array.from(doc.body.childNodes).map(sanitizeNode).join("");
+  }, []);
 
   useEffect(() => {
-    if (ref.current && value !== lastProp.current && value !== ref.current.innerHTML) {
-      ref.current.innerHTML = value || "";
-      lastProp.current = value;
+    if (ref.current) {
+      const next = value || "";
+      if (ref.current.innerHTML !== next) {
+        ref.current.innerHTML = next;
+      }
     }
   }, [value]);
 
   const handleInput = () => {
     if (!ref.current) return;
     const html = ref.current.innerHTML;
-    lastProp.current = html;
     onChange(html);
   };
 
@@ -108,6 +157,29 @@ export default function Editable({ value, onChange, className = "", multiline = 
     if (!multiline && e.key === "Enter") {
       e.preventDefault();
       ref.current?.blur();
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const clipboard = e.clipboardData;
+    const html = clipboard?.getData("text/html") || "";
+    const text = clipboard?.getData("text/plain") || "";
+
+    let sanitized = "";
+    if (html) {
+      sanitized = sanitizePastedHtml(html);
+    } else if (text) {
+      const escaped = text
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+      sanitized = multiline ? escaped.replace(/\r?\n/g, "<br>") : escaped.replace(/\r?\n/g, " ");
+    }
+
+    if (sanitized) {
+      document.execCommand("insertHTML", false, sanitized);
+      handleInput();
     }
   };
 
@@ -120,9 +192,9 @@ export default function Editable({ value, onChange, className = "", multiline = 
         suppressContentEditableWarning
         onInput={handleInput}
         onKeyDown={handleKeyDown}
+        onPaste={handlePaste}
         data-placeholder={placeholder}
         className={`outline-none focus:bg-amber-50 focus:ring-2 focus:ring-amber-300 rounded px-1 -mx-1 transition-colors ${className}`}
-        dangerouslySetInnerHTML={{ __html: value || "" }}
       />
     </div>
   );

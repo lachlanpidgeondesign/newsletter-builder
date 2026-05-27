@@ -17,7 +17,7 @@ export default function ImageTextEditor({ block, update }) {
         value={block.heading}
         onChange={(v) => update({ heading: v })}
         className="text-xl font-bold text-stone-900"
-        placeholder="Section title"
+        placeholder="Section title (optional)"
       />
       <Editable
         value={block.body}

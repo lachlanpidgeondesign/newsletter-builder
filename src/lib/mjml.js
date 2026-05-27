@@ -7,10 +7,41 @@ const LOCKED_HEADER = `
       <mj-column>
         <mj-image src="https://i.dailymail.co.uk/i/pix/2026/04/01/DMplusGames-white.png" width="160px" alt="Daily Mail Games" padding="0" />
       </mj-column>
+    </mj-section>
+<!-- Byline section -->
+<mj-section background-color="#ffffff" padding="16px 16px 0 16px" text-align="left">
+  <mj-column padding="0">
+    <mj-table role="presentation" cellpadding="0" cellspacing="0" width="100%" padding="0">
+      <tr>
+        <td width="88" valign="middle" style="padding:0 16px 0 0;">
+          <img src="https://media.sailthru.com/fss/f1dzxt/e1db1c6a-e866-437b-a593-234baa4258ef/Sam-Marsden_1.png" width="88" alt="Oliver Price" style="display:block;width:88px;max-width:88px;height:auto;border:0;" />
+        </td>
+        <td valign="middle" style="font-family:Inter, Montserrat, sans-serif;font-size:18px;font-weight:400;line-height:1.3;color:#000000;text-align:left;">
+          Oliver Price<br />
+          Puzzles Editor
+        </td>
+      </tr>
+    </mj-table>
+  </mj-column>
+</mj-section>
+
+    <!-- Byline divider -->
+    <mj-section background-color="#ffffff" padding="16px 16px 0 16px">
+      <mj-column>
+        <mj-divider border-width="1px" border-color="#CCCCCC" padding="0" />
+      </mj-column>
     </mj-section>`;
+
 
 // ── Locked footer: games section + legal ──
 const LOCKED_FOOTER = `
+    <!-- Divider -->
+    <mj-section background-color="#ffffff" padding="0 16px 24px 16px">
+      <mj-column>
+        <mj-divider border-width="1px" border-color="#CCCCCC" padding="0" />
+      </mj-column>
+    </mj-section>
+
     <!-- Section heading -->
     <mj-section background-color="#ffffff" padding="24px 16px 0 16px">
       <mj-column>
@@ -21,7 +52,7 @@ const LOCKED_FOOTER = `
 
 <!-- Featured games: Trace + Relink -->
 <mj-section background-color="#ffffff" padding="0 16px 28px 16px">
-  <mj-column width="48%" padding="0" background-color="#FEF7EC" border="1px solid #F8CD8B" border-radius="12px" inner-border-radius="12px">
+  <mj-column width="48%" padding="0" background-color="#FEF7EC" border="1px solid #F8CD8B" border-radius="12px" inner-border-radius="12px" css-class="game-card-first">
     <mj-text font-family="'Literata',Inter,Arial,Helvetica,sans-serif" font-size="17px" font-weight="800" color="#000000" padding="10px 12px 0 12px" line-height="1.2">Trace</mj-text>
     <mj-text font-family="Arial,Helvetica,sans-serif" font-size="12px" color="#333333" padding="4px 12px 8px 12px" line-height="1.4">Can you beat the clock?</mj-text>
     <mj-image src="https://i.dailymail.co.uk/i/pix/PuzzleReminder/Trace_260526.png" alt="Today's Trace Puzzle" padding="0" fluid-on-mobile="true" />
@@ -64,7 +95,7 @@ const LOCKED_FOOTER = `
       <mj-column>
         <mj-text padding="0 0 10px 0"><a href="https://www.dailymail.co.uk/games/game/index.html?build=15.0.3&amp;game=guessword&amp;meta=guessword&amp;type=default" style="display:block;text-decoration:none;" target="_blank"><div style="background-color:#FEF7EC;border-radius:12px;border:1px solid #F8CD8B;overflow:hidden;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td style="padding:12px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td width="84" valign="middle" style="padding:0;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="72"><tr><td width="72" height="72" align="center" valign="middle" style="background-color:#F8CD8B;border-radius:8px;"><img src="https://scripts.dailymail.com/static/mol-fe/static/mol-fe-xpmodule-games-channel/1.6.0/guessword-2-99e1eaa6b2f6390b.svg" width="48" height="48" alt="GuessWord" style="display:block;" /></td></tr></table></td><td valign="middle"><p style="margin:0 0 4px 0;font-family:'Literata',Inter,Arial,Helvetica,sans-serif;font-size:18px;font-weight:800;color:#1a1a2e;">GuessWord</p><p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:400;color:#333333;line-height:1.4;">Decipher in six attempts - or you're out</p></td><td width="20" valign="middle" align="right"><span style="font-family:Arial,Helvetica,sans-serif;font-size:18px;color:#926725;">&#8250;</span></td></tr></table></td></tr></table></div></a></mj-text>
 
-        <mj-text padding="0 0 10px 0"><a href="https://www.dailymail.com/games/game/index.html?game=color-connect&amp;type=aW50ZWdyYXRpb24x" style="display:block;text-decoration:none;" target="_blank"><div style="background-color:#EEF0FF;border-radius:12px;border:1px solid #9AA3FF;overflow:hidden;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td style="padding:12px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td width="84" valign="middle" style="padding:0;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="72"><tr><td width="72" height="72" align="center" valign="middle" style="background-color:#9AA3FF;border-radius:8px;"><img src="https://scripts.dailymail.com/static/mol-fe/static/mol-fe-xpmodule-games-channel/1.13.1/color-connect-064a227ce9b1b620.svg" width="48" height="48" alt="Colour Connect" style="display:block;" /></td></tr></table></td><td valign="middle"><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td valign="middle"><p style="margin:0;font-family:'Literata',Inter,Arial,Helvetica,sans-serif;font-size:18px;font-weight:800;color:#1a1a2e;display:inline;">Colour Connect</p></td><td valign="middle" style="padding-left:6px;"><span style="display:inline-block;background-color:#191919;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:800;padding:3px 6px;border-radius:4px;text-transform:uppercase;">NEW</span></td></tr></table><p style="margin:4px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:400;color:#333333;line-height:1.4;">Join the dots</p></td><td width="20" valign="middle" align="right"><span style="font-family:Arial,Helvetica,sans-serif;font-size:18px;color:#343D99;">&#8250;</span></td></tr></table></td></tr></table></div></a></mj-text>
+        <mj-text padding="0 0 10px 0"><a href="https://www.dailymail.com/games/game/index.html?game=color-connect&amp;type=aW50ZWdyYXRpb24x" style="display:block;text-decoration:none;" target="_blank"><div style="background-color:#EEF0FF;border-radius:12px;border:1px solid #9AA3FF;overflow:hidden;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td style="padding:12px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td width="84" valign="middle" style="padding:0;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="72"><tr><td width="72" height="72" align="center" valign="middle" style="background-color:#9AA3FF;border-radius:8px;"><img src="https://scripts.dailymail.com/static/mol-fe/static/mol-fe-xpmodule-games-channel/1.13.1/color-connect-064a227ce9b1b620.svg" width="48" height="48" alt="Colour Connect" style="display:block;" /></td></tr></table></td><td valign="middle"><p style="margin:0 0 4px 0;font-family:'Literata',Inter,Arial,Helvetica,sans-serif;font-size:18px;font-weight:800;color:#1a1a2e;line-height:1.3;"><span style="display:inline;">Colour Connect</span> <span style="display:inline-block;background-color:#191919;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:800;padding:3px 6px;border-radius:4px;text-transform:uppercase;vertical-align:middle;white-space:nowrap;">NEW</span></p><p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:400;color:#333333;line-height:1.4;">Join the dots</p></td><td width="20" valign="middle" align="right"><span style="font-family:Arial,Helvetica,sans-serif;font-size:18px;color:#343D99;">&#8250;</span></td></tr></table></td></tr></table></div></a></mj-text>
 
         <mj-text padding="0 0 10px 0"><a href="https://www.dailymail.co.uk/games/game/index.html?build=15.0.3&amp;game=master-quiz&amp;meta=quiz&amp;type=default" style="display:block;text-decoration:none;" target="_blank"><div style="background-color:#E5FAF5;border-radius:12px;border:1px solid #66E0C4;overflow:hidden;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td style="padding:12px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td width="84" valign="middle" style="padding:0;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="72"><tr><td width="72" height="72" align="center" valign="middle" style="background-color:#66E0C4;border-radius:8px;"><img src="https://scripts.dailymail.com/static/mol-fe/static/mol-fe-xpmodule-games-channel/1.6.0/master-quiz-0fdd8b78de968998.svg" width="48" height="48" alt="Master Quiz" style="display:block;" /></td></tr></table></td><td valign="middle"><p style="margin:0 0 4px 0;font-family:'Literata',Inter,Arial,Helvetica,sans-serif;font-size:18px;font-weight:800;color:#1a1a2e;">Master Quiz</p><p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:400;color:#333333;line-height:1.4;">Test your general knowledge</p></td><td width="20" valign="middle" align="right"><span style="font-family:Arial,Helvetica,sans-serif;font-size:18px;color:#007A5E;">&#8250;</span></td></tr></table></td></tr></table></div></a></mj-text>
 
@@ -96,27 +127,28 @@ const LOCKED_FOOTER = `
  */
 export function generateMJML(blocks, subject) {
   const body = blocks
-    .map((b) => BLOCK_TYPES[b.type]?.toMJML(b) || "")
+    .map((b, index) => BLOCK_TYPES[b.type]?.toMJML(b, { isFirst: index === 0 }) || "")
     .join("\n");
 
   return `<mjml>
-  <mj-head>
-    <mj-title>${escapeXml(subject || "Your Daily Puzzles")}</mj-title>
-    <mj-font name="Literata" href="https://fonts.googleapis.com/css2?family=Literata:wght@800&amp;display=swap" />
-    <mj-attributes>
-      <mj-all font-family="Inter, Montserrat, sans-serif" />
-      <mj-section background-color="#ffffff" />
-      <mj-text font-size="17px" font-weight="400" line-height="1.55" color="#000000" letter-spacing="0" padding="0" />
-    </mj-attributes>
-    <mj-style>
-      a { color: #285cff; }
-      @media only screen and (max-width: 480px) {
-        .col-gap-reset > table > tbody > tr > td { padding-left: 0 !important; padding-right: 0 !important; }
-        .col-gap-mobile > table > tbody > tr > td { padding-bottom: 16px !important; }
-      }
-    </mj-style>
-    <mj-preview>Play today's Trace &amp; brand-new Relink – plus GuessWord, Master Quiz, and more!</mj-preview>
-  </mj-head>
+<mj-head>
+  <mj-title>${escapeXml(subject || "Your Daily Puzzles")}</mj-title>
+  <mj-font name="Literata" href="https://fonts.googleapis.com/css2?family=Literata:wght@800&amp;display=swap" />
+  <mj-attributes>
+    <mj-all font-family="Inter, Montserrat, sans-serif" />
+    <mj-section background-color="#ffffff" />
+    <mj-text font-size="17px" font-weight="400" line-height="1.55" color="#000000" letter-spacing="0" padding="0" />
+  </mj-attributes>
+  <mj-style>
+    a { color: #285cff; }
+    @media only screen and (max-width: 480px) {
+      .col-gap-reset > table > tbody > tr > td { padding-left: 0 !important; padding-right: 0 !important; }
+      .col-gap-mobile > table > tbody > tr > td { padding-bottom: 16px !important; }
+      .game-card-first { margin-bottom: 16px !important; }
+    }
+  </mj-style>
+  <mj-preview>Play today's Trace &amp; brand-new Relink – plus GuessWord, Master Quiz, and more!</mj-preview>
+</mj-head>
   <mj-body background-color="#EEF0FF" width="600px">
     <mj-raw>
       <div style="display:none">{beacon}</div>

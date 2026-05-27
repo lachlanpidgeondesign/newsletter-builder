@@ -7,7 +7,7 @@ export default function HeadingTextEditor({ block, update }) {
         value={block.heading}
         onChange={(v) => update({ heading: v })}
         className="text-2xl font-bold text-stone-900"
-        placeholder="Headline"
+        placeholder="Headline (optional)"
       />
       <Editable
         value={block.body}

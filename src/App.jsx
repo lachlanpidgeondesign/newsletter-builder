@@ -60,7 +60,7 @@ function PaletteItem({ type, def }) {
 }
 
 // ---------- Sortable canvas block ----------
-function CanvasBlock({ block, onUpdate, onRemove, isOverTop }) {
+function CanvasBlock({ block, onUpdate, onRemove, onDuplicate, isOverTop }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver, active } =
     useSortable({ id: block.id });
 
@@ -93,6 +93,13 @@ function CanvasBlock({ block, onUpdate, onRemove, isOverTop }) {
             aria-label="Drag to reorder"
           >
             <GripVertical className="w-3.5 h-3.5 text-stone-500" />
+          </button>
+          <button
+            onClick={onDuplicate}
+            className="p-1.5 bg-white border border-stone-200 rounded hover:bg-amber-50 hover:border-amber-200"
+            aria-label="Duplicate block"
+          >
+            <Copy className="w-3.5 h-3.5 text-stone-500 hover:text-amber-700" />
           </button>
           <button
             onClick={onRemove}
@@ -253,6 +260,17 @@ export default function App() {
 
   const removeBlock = (id) => {
     setBlocks((prev) => prev.filter((b) => b.id !== id));
+  };
+
+  const duplicateBlock = (id) => {
+    setBlocks((prev) => {
+      const index = prev.findIndex((b) => b.id === id);
+      if (index < 0) return prev;
+      const clone = { ...prev[index], id: nextId.current++ };
+      const next = [...prev];
+      next.splice(index + 1, 0, clone);
+      return next;
+    });
   };
 
   const handleDragStart = (event) => {
@@ -452,6 +470,7 @@ export default function App() {
                         key={block.id}
                         block={block}
                         onUpdate={(patch) => updateBlock(block.id, patch)}
+                        onDuplicate={() => duplicateBlock(block.id)}
                         onRemove={() => removeBlock(block.id)}
                       />
                     ))}
@@ -469,14 +488,25 @@ export default function App() {
             {view === "preview" && (
               <div className="w-full max-w-2xl">
                 <p className="text-xs text-stone-500 mb-3">
-                  Compiled email preview. Resize the window to see mobile stacking.
+                  Compiled email preview. Drag the bottom-right corner to test responsive widths.
                 </p>
-                <iframe
-                  title="preview"
-                  srcDoc={compiled.html}
-                  className="w-full bg-white rounded-lg shadow-sm border border-stone-200"
-                  style={{ height: "calc(100vh - 180px)" }}
-                />
+                <div
+                  className="bg-white rounded-lg shadow-sm border border-stone-200 overflow-auto"
+                  style={{
+                    width: "100%",
+                    maxWidth: "100%",
+                    minWidth: "320px",
+                    height: "calc(100vh - 180px)",
+                    resize: "horizontal",
+                  }}
+                >
+                  <iframe
+                    title="preview"
+                    srcDoc={compiled.html}
+                    className="w-full bg-white"
+                    style={{ height: "100%" }}
+                  />
+                </div>
               </div>
             )}
 
