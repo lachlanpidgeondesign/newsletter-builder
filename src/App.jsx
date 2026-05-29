@@ -23,6 +23,8 @@ import {
   Edit3,
   Eye,
   GripVertical,
+  History,
+  Lock,
   LogIn,
   LogOut,
   RefreshCw,
@@ -47,6 +49,12 @@ import SignInGate from "./components/SignInGate.jsx";
 import SaveEditionDialog from "./components/SaveEditionDialog.jsx";
 import EditionsLibrary from "./components/EditionsLibrary.jsx";
 import EditionsHome from "./components/EditionsHome.jsx";
+import VersionHistoryPanel from "./components/VersionHistoryPanel.jsx";
+import {
+  heartbeat,
+  clearPresence,
+  useActiveEditors,
+} from "./lib/presence.js";
 
 function makeSnapshot(subject, blocks) {
   return JSON.stringify({ subject, blocks });
@@ -110,9 +118,9 @@ function PaletteItem({ type, def }) {
 }
 
 // ---------- Sortable canvas block ----------
-function CanvasBlock({ block, onUpdate, onRemove, onDuplicate, isOverTop }) {
+function CanvasBlock({ block, onUpdate, onRemove, onDuplicate, readOnly = false }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver, active } =
-    useSortable({ id: block.id });
+    useSortable({ id: block.id, disabled: readOnly });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -135,33 +143,35 @@ function CanvasBlock({ block, onUpdate, onRemove, onDuplicate, isOverTop }) {
         </div>
       )}
       <div className="group relative bg-white rounded-lg shadow-sm border border-stone-200 hover:border-stone-300 transition mb-3">
-        <div className="absolute left-0 top-0 bottom-0 -translate-x-full pr-2 flex flex-col items-end gap-1 opacity-0 group-hover:opacity-100 transition">
-          <button
-            {...attributes}
-            {...listeners}
-            className="p-1.5 bg-white border border-stone-200 rounded cursor-grab active:cursor-grabbing"
-            aria-label="Drag to reorder"
-          >
-            <GripVertical className="w-3.5 h-3.5 text-stone-500" />
-          </button>
-          <button
-            onClick={onDuplicate}
-            className="p-1.5 bg-white border border-stone-200 rounded hover:bg-amber-50 hover:border-amber-200"
-            aria-label="Duplicate block"
-          >
-            <Copy className="w-3.5 h-3.5 text-stone-500 hover:text-amber-700" />
-          </button>
-          <button
-            onClick={onRemove}
-            className="p-1.5 bg-white border border-stone-200 rounded hover:bg-red-50 hover:border-red-200"
-            aria-label="Delete block"
-          >
-            <Trash2 className="w-3.5 h-3.5 text-stone-500 hover:text-red-600" />
-          </button>
-        </div>
-        <div className="p-6">
-          <Editor block={block} update={onUpdate} />
-        </div>
+        {!readOnly && (
+          <div className="absolute left-0 top-0 bottom-0 -translate-x-full pr-2 flex flex-col items-end gap-1 opacity-0 group-hover:opacity-100 transition">
+            <button
+              {...attributes}
+              {...listeners}
+              className="p-1.5 bg-white border border-stone-200 rounded cursor-grab active:cursor-grabbing"
+              aria-label="Drag to reorder"
+            >
+              <GripVertical className="w-3.5 h-3.5 text-stone-500" />
+            </button>
+            <button
+              onClick={onDuplicate}
+              className="p-1.5 bg-white border border-stone-200 rounded hover:bg-amber-50 hover:border-amber-200"
+              aria-label="Duplicate block"
+            >
+              <Copy className="w-3.5 h-3.5 text-stone-500 hover:text-amber-700" />
+            </button>
+            <button
+              onClick={onRemove}
+              className="p-1.5 bg-white border border-stone-200 rounded hover:bg-red-50 hover:border-red-200"
+              aria-label="Delete block"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-stone-500 hover:text-red-600" />
+            </button>
+          </div>
+        )}
+        <fieldset disabled={readOnly} className="p-6 m-0 border-0 min-w-0">
+          <Editor block={block} update={onUpdate} readOnly={readOnly} />
+        </fieldset>
       </div>
     </div>
   );
@@ -255,6 +265,40 @@ function LockedFooter() {
   );
 }
 
+// ---------- Read-only banner ----------
+function ReadOnlyBanner({ releaseDate, onUnlock, onDuplicate }) {
+  const formatted = (() => {
+    if (!releaseDate) return "an earlier date";
+    const d = new Date(releaseDate);
+    if (Number.isNaN(d.getTime())) return releaseDate;
+    return d.toLocaleDateString();
+  })();
+  return (
+    <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+      <div className="flex items-start gap-2 flex-1">
+        <Lock className="w-4 h-4 text-amber-700 mt-0.5 flex-shrink-0" />
+        <p className="text-xs text-amber-900 leading-relaxed">
+          This edition was published on <strong>{formatted}</strong>. Editing is locked to prevent accidental changes.
+        </p>
+      </div>
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <button
+          onClick={onDuplicate}
+          className="px-3 py-1.5 text-xs rounded bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 font-medium"
+        >
+          Duplicate as new draft
+        </button>
+        <button
+          onClick={onUnlock}
+          className="px-3 py-1.5 text-xs rounded bg-amber-400 hover:bg-amber-300 text-stone-900 font-medium"
+        >
+          Unlock for editing
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ---------- App ----------
 const STARTER_BLOCK = {
   id: "starter",
@@ -274,7 +318,9 @@ export default function App() {
   const [saveMode, setSaveMode] = useState("create");
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
   const [loadedEdition, setLoadedEdition] = useState(null);
+  const [isUnlocked, setIsUnlocked] = useState(false);
   const [baselineSnapshot, setBaselineSnapshot] = useState(
     makeSnapshot("Your Daily Puzzles", [STARTER_BLOCK])
   );
@@ -312,6 +358,8 @@ export default function App() {
   const hasUnsavedChanges =
     makeSnapshot(subject, blocks) !== baselineSnapshot;
 
+  const isReadOnly = loadedEdition?.status === "published" && !isUnlocked;
+
   const addBlock = (type, atIndex) => {
     const id = nextId.current++;
     const newBlock = { id, ...BLOCK_TYPES[type].create() };
@@ -347,6 +395,7 @@ export default function App() {
 
   const handleDragEnd = (event) => {
     setActiveDrag(null);
+    if (isReadOnly) return;
     const { active, over } = event;
     if (!over) return;
 
@@ -410,6 +459,7 @@ export default function App() {
     setSubject(nextSubject);
     setBlocks(nextBlocks);
     setLoadedEdition(null);
+    setIsUnlocked(false);
     setBaselineSnapshot(makeSnapshot(nextSubject, nextBlocks));
   };
 
@@ -423,6 +473,7 @@ export default function App() {
         setBlocks(nextBlocks);
         nextId.current = getNextNumericId(nextBlocks);
         setLoadedEdition(null);
+        setIsUnlocked(false);
         setBaselineSnapshot(makeSnapshot(nextSubject, nextBlocks));
       }
     } catch (e) {
@@ -443,6 +494,7 @@ export default function App() {
       releaseDate: edition.releaseDate || getDefaultReleaseDate(),
       status: edition.status || "draft",
     });
+    setIsUnlocked(false);
     setBaselineSnapshot(makeSnapshot(nextSubject, blocks));
   };
 
@@ -464,6 +516,7 @@ export default function App() {
       releaseDate: edition.releaseDate || getDefaultReleaseDate(),
       status: edition.status || "draft",
     });
+    setIsUnlocked(false);
     setBaselineSnapshot(makeSnapshot(nextSubject, nextBlocks));
     return true;
   };
@@ -498,8 +551,51 @@ export default function App() {
     setSubject(nextSubject);
     setBlocks(nextBlocks);
     setLoadedEdition(null);
+    setIsUnlocked(false);
     setBaselineSnapshot(makeSnapshot(nextSubject, nextBlocks));
     setMode("editor");
+  };
+
+  const handleUnlock = () => {
+    const ok = confirm(
+      "Are you sure? Changes to a published edition affect the historical record."
+    );
+    if (!ok) return;
+    setIsUnlocked(true);
+  };
+
+  const handleDuplicateAsDraft = () => {
+    const cloned = blocks.map((b) => ({ ...b, id: nextId.current++ }));
+    const nextSubject = subject?.startsWith("Copy of ") ? subject : `Copy of ${subject || "Untitled"}`;
+    setSubject(nextSubject);
+    setBlocks(cloned);
+    setLoadedEdition(null);
+    setIsUnlocked(false);
+    // Leave snapshot at previous baseline so the new draft shows as unsaved changes.
+    setBaselineSnapshot(makeSnapshot("", []));
+  };
+
+  const handleOpenUpdateDialog = () => {
+    if (loadedEdition?.status === "published") {
+      const ok = confirm("You're updating a published edition. Continue?");
+      if (!ok) return;
+    }
+    openSaveDialog("update");
+  };
+
+  const handleVersionRestored = (edition) => {
+    const nextSubject = edition.subject || "Newsletter";
+    const nextBlocks = Array.isArray(edition.blocks) ? edition.blocks : [];
+    setSubject(nextSubject);
+    setBlocks(nextBlocks);
+    nextId.current = getNextNumericId(nextBlocks);
+    setLoadedEdition({
+      id: edition.id,
+      releaseDate: edition.releaseDate || getDefaultReleaseDate(),
+      status: edition.status || "draft",
+    });
+    setIsUnlocked(false);
+    setBaselineSnapshot(makeSnapshot(nextSubject, nextBlocks));
   };
 
   const openEditionFromHome = async (editionId) => {
@@ -514,6 +610,8 @@ export default function App() {
     }
     setMode("home");
   };
+
+  const [dismissedPresenceBanner, setDismissedPresenceBanner] = useState(false);
 
   if (!user) {
     return (
@@ -589,7 +687,8 @@ export default function App() {
               <input
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="bg-transparent border-b border-stone-700 focus:border-amber-400 outline-none px-1 py-0.5 text-sm w-72"
+                disabled={isReadOnly}
+                className="bg-transparent border-b border-stone-700 focus:border-amber-400 outline-none px-1 py-0.5 text-sm w-72 disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -598,20 +697,32 @@ export default function App() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => openSaveDialog("create")}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 rounded text-xs"
-                    title="Save the current newsletter as a new named edition"
+                    disabled={isReadOnly}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={isReadOnly ? "Unlock or duplicate this edition to save changes" : "Save the current newsletter as a new named edition"}
                   >
                     <Save className="w-3.5 h-3.5" />
                     Save as New Edition
                   </button>
                   {loadedEdition?.id && (
                     <button
-                      onClick={() => openSaveDialog("update")}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-700 hover:bg-stone-600 rounded text-xs"
-                      title="Update the loaded edition"
+                      onClick={handleOpenUpdateDialog}
+                      disabled={isReadOnly}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-700 hover:bg-stone-600 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                      title={isReadOnly ? "Unlock this edition to update it" : "Update the loaded edition"}
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                       Update edition
+                    </button>
+                  )}
+                  {loadedEdition?.id && (
+                    <button
+                      onClick={() => setIsVersionHistoryOpen(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 rounded text-xs"
+                      title="View previous versions of this edition"
+                    >
+                      <History className="w-3.5 h-3.5" />
+                      Version history
                     </button>
                   )}
                 </div>
@@ -712,14 +823,25 @@ export default function App() {
               <h2 className="text-[10px] uppercase tracking-widest text-stone-500 font-semibold mb-3">
                 Blocks
               </h2>
-              <div className="space-y-2">
-                {Object.entries(BLOCK_TYPES).map(([key, def]) => (
-                  <PaletteItem key={key} type={key} def={def} />
-                ))}
-              </div>
-              <p className="text-[11px] text-stone-500 mt-4 leading-relaxed">
-                Drag onto the canvas. Click any text to edit. Drafts autosave to this browser.
-              </p>
+              {isReadOnly ? (
+                <div className="rounded border border-stone-200 bg-stone-50 p-3 text-center">
+                  <Lock className="w-4 h-4 text-stone-400 mx-auto mb-2" />
+                  <p className="text-[11px] text-stone-500 leading-relaxed">
+                    Blocks are locked while viewing a published edition.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    {Object.entries(BLOCK_TYPES).map(([key, def]) => (
+                      <PaletteItem key={key} type={key} def={def} />
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-stone-500 mt-4 leading-relaxed">
+                    Drag onto the canvas. Click any text to edit. Drafts autosave to this browser.
+                  </p>
+                </>
+              )}
               {compiled.errors.length > 0 && (
                 <div className="mt-4 p-2 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-900">
                   <strong>MJML warnings:</strong>
@@ -737,6 +859,13 @@ export default function App() {
           <main className="flex-1 p-8 flex justify-center overflow-y-auto">
             {view === "edit" && (
               <div className="w-full max-w-2xl">
+                {isReadOnly && (
+                  <ReadOnlyBanner
+                    releaseDate={loadedEdition?.releaseDate}
+                    onUnlock={handleUnlock}
+                    onDuplicate={handleDuplicateAsDraft}
+                  />
+                )}
                 <LockedHeader />
                 <CanvasDropArea isEmpty={blocks.length === 0} isActive={!!activeDrag}>
                   <SortableContext
@@ -750,6 +879,7 @@ export default function App() {
                         onUpdate={(patch) => updateBlock(block.id, patch)}
                         onDuplicate={() => duplicateBlock(block.id)}
                         onRemove={() => removeBlock(block.id)}
+                        readOnly={isReadOnly}
                       />
                     ))}
                   </SortableContext>
@@ -810,6 +940,13 @@ export default function App() {
         activeEditionId={loadedEdition?.id || null}
       />
 
+      <VersionHistoryPanel
+        isOpen={isVersionHistoryOpen}
+        editionId={loadedEdition?.id || null}
+        onClose={() => setIsVersionHistoryOpen(false)}
+        onRestored={handleVersionRestored}
+      />
+
       {/* Drag overlay */}
       <DragOverlay dropAnimation={null}>
         {activeDrag?.data.current?.source === "palette" ? (
@@ -831,3 +968,37 @@ export default function App() {
     </DndContext>
   );
 }
+
+// Presence heartbeat/cleanup
+const prevEditionIdRef = useRef(null);
+useEffect(() => {
+  let interval;
+  const editionId = loadedEdition?.id;
+  if (editionId && user?.email) {
+    heartbeat(editionId);
+    interval = setInterval(() => heartbeat(editionId), 30000);
+  }
+  // On edition switch or unload, clear previous presence
+  return () => {
+    if (prevEditionIdRef.current && user?.email) {
+      clearPresence(prevEditionIdRef.current);
+    }
+    clearInterval(interval);
+    prevEditionIdRef.current = editionId;
+  };
+}, [loadedEdition?.id, user?.email]);
+
+// On window unload, best-effort clear
+useEffect(() => {
+  const editionId = loadedEdition?.id;
+  function handleUnload() {
+    if (editionId && user?.email) {
+      clearPresence(editionId);
+    }
+  }
+  window.addEventListener("beforeunload", handleUnload);
+  return () => window.removeEventListener("beforeunload", handleUnload);
+}, [loadedEdition?.id, user?.email]);
+
+// Poll for other active editors
+const activeEditors = useActiveEditors(loadedEdition?.id);

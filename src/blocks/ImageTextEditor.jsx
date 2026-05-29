@@ -1,7 +1,7 @@
 import Editable from "../components/Editable.jsx";
 import ImageSlot from "../components/ImageSlot.jsx";
 
-export default function ImageTextEditor({ block, update }) {
+export default function ImageTextEditor({ block, update, readOnly = false }) {
   const ImageHalf = (
     <div className="flex-1 min-w-0">
       <ImageSlot
@@ -18,6 +18,7 @@ export default function ImageTextEditor({ block, update }) {
         onChange={(v) => update({ heading: v })}
         className="text-xl font-bold text-stone-900"
         placeholder="Section title (optional)"
+        readOnly={readOnly}
       />
       <Editable
         value={block.body}
@@ -25,6 +26,7 @@ export default function ImageTextEditor({ block, update }) {
         multiline
         className="text-sm text-stone-700 leading-relaxed whitespace-pre-wrap"
         placeholder="Body text"
+        readOnly={readOnly}
       />
     </div>
   );
@@ -35,12 +37,14 @@ export default function ImageTextEditor({ block, update }) {
         {block.side === "left" ? ImageHalf : TextHalf}
         {block.side === "left" ? TextHalf : ImageHalf}
       </div>
-      <button
-        onClick={() => update({ side: block.side === "left" ? "right" : "left" })}
-        className="text-xs text-stone-500 hover:text-stone-900 underline"
-      >
-        Flip image to {block.side === "left" ? "right" : "left"}
-      </button>
+      {!readOnly && (
+        <button
+          onClick={() => update({ side: block.side === "left" ? "right" : "left" })}
+          className="text-xs text-stone-500 hover:text-stone-900 underline"
+        >
+          Flip image to {block.side === "left" ? "right" : "left"}
+        </button>
+      )}
     </div>
   );
 }

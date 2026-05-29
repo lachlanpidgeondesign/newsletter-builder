@@ -85,7 +85,7 @@ function FormatToolbar({ containerRef }) {
   );
 }
 
-export default function Editable({ value, onChange, className = "", multiline = false, placeholder = "" }) {
+export default function Editable({ value, onChange, className = "", multiline = false, placeholder = "", readOnly = false }) {
   const ref = useRef(null);
   const wrapperRef = useRef(null);
 
@@ -185,16 +185,18 @@ export default function Editable({ value, onChange, className = "", multiline = 
 
   return (
     <div ref={wrapperRef} className="relative">
-      <FormatToolbar containerRef={wrapperRef} />
+      {!readOnly && <FormatToolbar containerRef={wrapperRef} />}
       <div
         ref={ref}
-        contentEditable
+        contentEditable={!readOnly}
         suppressContentEditableWarning
-        onInput={handleInput}
-        onKeyDown={handleKeyDown}
-        onPaste={handlePaste}
+        onInput={readOnly ? undefined : handleInput}
+        onKeyDown={readOnly ? undefined : handleKeyDown}
+        onPaste={readOnly ? undefined : handlePaste}
         data-placeholder={placeholder}
-        className={`outline-none focus:bg-amber-50 focus:ring-2 focus:ring-amber-300 rounded px-1 -mx-1 transition-colors ${className}`}
+        className={`outline-none rounded px-1 -mx-1 transition-colors ${
+          readOnly ? "" : "focus:bg-amber-50 focus:ring-2 focus:ring-amber-300"
+        } ${className}`}
       />
     </div>
   );

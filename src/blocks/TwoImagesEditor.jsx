@@ -1,7 +1,7 @@
 import Editable from "../components/Editable.jsx";
 import ImageSlot from "../components/ImageSlot.jsx";
 
-export default function TwoImagesEditor({ block, update }) {
+export default function TwoImagesEditor({ block, update, readOnly: _readOnly = false }) {
   return (
     <div className="flex gap-5">
       {["left", "right"].map((side) => (

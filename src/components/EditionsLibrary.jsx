@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { BookOpen, Loader2, Trash2 } from "lucide-react";
 import { deleteEdition, listEditions } from "../lib/editions.js";
+import { useActiveEditors } from "../lib/presence.js";
 
 function formatDate(dateLike) {
   if (!dateLike) return "-";
@@ -28,6 +29,8 @@ export default function EditionsLibrary({
   const [filter, setFilter] = useState("all");
   const [deletingId, setDeletingId] = useState(null);
   const [loadingId, setLoadingId] = useState(null);
+  // Map of editionId -> active editors
+  const [presenceMap, setPresenceMap] = useState({});
 
   const loadItems = async () => {
     setError("");
@@ -46,6 +49,32 @@ export default function EditionsLibrary({
     if (!isOpen) return;
     loadItems();
   }, [isOpen]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function pollPresence() {
+      const map = {};
+      await Promise.all(
+        items.map(async (item) => {
+          try {
+            const editors = await getActiveEditors(item.id);
+            map[item.id] = editors;
+          } catch {
+            map[item.id] = [];
+          }
+        })
+      );
+      if (!cancelled) setPresenceMap(map);
+    }
+    if (items.length > 0) {
+      pollPresence();
+      const interval = setInterval(pollPresence, 15000);
+      return () => {
+        cancelled = true;
+        clearInterval(interval);
+      };
+    }
+  }, [items]);
 
   const filteredItems = useMemo(() => {
     if (filter === "all") return items;
@@ -181,6 +210,14 @@ export default function EditionsLibrary({
                       </div>
                       {loadingId === edition.id && (
                         <p className="text-[11px] text-stone-500 mt-2">Loading edition...</p>
+                      )}
+                      {presenceMap[edition.id] && presenceMap[edition.id].length > 0 && (
+                        <span className="ml-2 px-2 py-0.5 rounded bg-amber-50 text-amber-900 text-[11px] font-medium">
+                          👤 {presenceMap[edition.id][0].user_email}
+                          {presenceMap[edition.id].length === 1
+                            ? " is editing"
+                            : ` and ${presenceMap[edition.id].length - 1} other${presenceMap[edition.id].length > 2 ? "s" : ""} are editing`}
+                        </span>
                       )}
                     </button>
                   );
