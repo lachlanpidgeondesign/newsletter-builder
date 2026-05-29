@@ -50,11 +50,6 @@ import SaveEditionDialog from "./components/SaveEditionDialog.jsx";
 import EditionsLibrary from "./components/EditionsLibrary.jsx";
 import EditionsHome from "./components/EditionsHome.jsx";
 import VersionHistoryPanel from "./components/VersionHistoryPanel.jsx";
-import {
-  heartbeat,
-  clearPresence,
-  useActiveEditors,
-} from "./lib/presence.js";
 
 function makeSnapshot(subject, blocks) {
   return JSON.stringify({ subject, blocks });
@@ -611,8 +606,6 @@ export default function App() {
     setMode("home");
   };
 
-  const [dismissedPresenceBanner, setDismissedPresenceBanner] = useState(false);
-
   if (!user) {
     return (
       <div className="h-screen flex flex-col bg-stone-100">
@@ -968,37 +961,3 @@ export default function App() {
     </DndContext>
   );
 }
-
-// Presence heartbeat/cleanup
-const prevEditionIdRef = useRef(null);
-useEffect(() => {
-  let interval;
-  const editionId = loadedEdition?.id;
-  if (editionId && user?.email) {
-    heartbeat(editionId);
-    interval = setInterval(() => heartbeat(editionId), 30000);
-  }
-  // On edition switch or unload, clear previous presence
-  return () => {
-    if (prevEditionIdRef.current && user?.email) {
-      clearPresence(prevEditionIdRef.current);
-    }
-    clearInterval(interval);
-    prevEditionIdRef.current = editionId;
-  };
-}, [loadedEdition?.id, user?.email]);
-
-// On window unload, best-effort clear
-useEffect(() => {
-  const editionId = loadedEdition?.id;
-  function handleUnload() {
-    if (editionId && user?.email) {
-      clearPresence(editionId);
-    }
-  }
-  window.addEventListener("beforeunload", handleUnload);
-  return () => window.removeEventListener("beforeunload", handleUnload);
-}, [loadedEdition?.id, user?.email]);
-
-// Poll for other active editors
-const activeEditors = useActiveEditors(loadedEdition?.id);
