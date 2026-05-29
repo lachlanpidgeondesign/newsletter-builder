@@ -41,6 +41,7 @@ import {
   importDraftFile,
 } from "./lib/storage.js";
 import { getEdition } from "./lib/editions.js";
+import { SUPABASE_CONFIG_OK } from "./lib/supabase.js";
 import { signInWithGoogle, signOut, useCurrentUser } from "./lib/auth.js";
 import SignInGate from "./components/SignInGate.jsx";
 import SaveEditionDialog from "./components/SaveEditionDialog.jsx";
@@ -532,9 +533,14 @@ export default function App() {
             <p className="text-sm text-stone-600 mt-2">
               Sign in with your work Google account to view and edit shared editions.
             </p>
+            {!SUPABASE_CONFIG_OK && (
+              <div className="mt-4 text-xs text-red-700 bg-red-50 border border-red-200 rounded p-3 text-left">
+                Supabase configuration is missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY as GitHub Actions secrets and re-run the deploy.
+              </div>
+            )}
             <button
               onClick={handleSignIn}
-              disabled={authLoading}
+              disabled={authLoading || !SUPABASE_CONFIG_OK}
               className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-full text-sm font-medium disabled:opacity-60"
             >
               <LogIn className="w-4 h-4" />
