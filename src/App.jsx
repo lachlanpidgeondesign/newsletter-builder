@@ -17,12 +17,16 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
+  ArrowLeft,
   Copy,
   Download,
   Edit3,
   Eye,
-  Code,
   GripVertical,
+  LogIn,
+  LogOut,
+  RefreshCw,
+  Save,
   Trash2,
   Upload,
   FilePlus,
@@ -36,6 +40,51 @@ import {
   exportDraftFile,
   importDraftFile,
 } from "./lib/storage.js";
+import { getEdition } from "./lib/editions.js";
+import { signInWithGoogle, signOut, useCurrentUser } from "./lib/auth.js";
+import SignInGate from "./components/SignInGate.jsx";
+import SaveEditionDialog from "./components/SaveEditionDialog.jsx";
+import EditionsLibrary from "./components/EditionsLibrary.jsx";
+import EditionsHome from "./components/EditionsHome.jsx";
+
+function makeSnapshot(subject, blocks) {
+  return JSON.stringify({ subject, blocks });
+}
+
+function getDefaultReleaseDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getNextNumericId(blocks) {
+  return (
+    blocks
+      .map((b) => (typeof b.id === "number" ? b.id : 0))
+      .reduce((a, b) => Math.max(a, b), 0) + 1
+  );
+}
+
+function userInitials(user) {
+  const meta = user?.user_metadata || {};
+  const fullName =
+    meta.full_name ||
+    meta.name ||
+    [meta.given_name, meta.family_name].filter(Boolean).join(" ");
+
+  if (fullName) {
+    const parts = fullName.trim().split(/\s+/);
+    const first = parts[0]?.[0] || "";
+    const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+    const initials = (first + last).toUpperCase();
+    if (initials) return initials;
+  }
+
+  const email = user?.email || "";
+  if (!email) return "?";
+  const local = email.split("@")[0] || "";
+  const parts = local.split(/[._-]/).filter(Boolean);
+  if (parts.length === 0) return local.slice(0, 2).toUpperCase();
+  return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
+}
 
 // ---------- Palette item (draggable source) ----------
 function PaletteItem({ type, def }) {
@@ -214,24 +263,39 @@ const STARTER_BLOCK = {
 };
 
 export default function App() {
+  const user = useCurrentUser();
+  const [mode, setMode] = useState("home");
   const [subject, setSubject] = useState("Your Daily Puzzles");
   const [blocks, setBlocks] = useState([STARTER_BLOCK]);
   const [view, setView] = useState("edit");
   const [activeDrag, setActiveDrag] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [saveMode, setSaveMode] = useState("create");
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  const [loadedEdition, setLoadedEdition] = useState(null);
+  const [baselineSnapshot, setBaselineSnapshot] = useState(
+    makeSnapshot("Your Daily Puzzles", [STARTER_BLOCK])
+  );
+  const [signOutLoading, setSignOutLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
   const nextId = useRef(1);
 
   // Load draft on mount
   useEffect(() => {
     const saved = loadDraft();
     if (saved && Array.isArray(saved.blocks)) {
-      setSubject(saved.subject || "Newsletter");
-      setBlocks(saved.blocks);
-      const maxNumericId = saved.blocks
-        .map((b) => (typeof b.id === "number" ? b.id : 0))
-        .reduce((a, b) => Math.max(a, b), 0);
-      nextId.current = maxNumericId + 1;
+      const nextSubject = saved.subject || "Newsletter";
+      const nextBlocks = saved.blocks;
+      setSubject(nextSubject);
+      setBlocks(nextBlocks);
+      nextId.current = getNextNumericId(nextBlocks);
+      setBaselineSnapshot(makeSnapshot(nextSubject, nextBlocks));
+      return;
     }
+
+    setBaselineSnapshot(makeSnapshot("Your Daily Puzzles", [STARTER_BLOCK]));
   }, []);
 
   // Autosave on change (debounced)
@@ -243,6 +307,9 @@ export default function App() {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
   );
+
+  const hasUnsavedChanges =
+    makeSnapshot(subject, blocks) !== baselineSnapshot;
 
   const addBlock = (type, atIndex) => {
     const id = nextId.current++;
@@ -337,93 +404,298 @@ export default function App() {
   const handleNew = () => {
     if (!confirm("Start a new newsletter? Current draft will be saved.")) return;
     exportDraftFile({ subject, blocks });
-    setSubject("New Newsletter");
-    setBlocks([{ id: nextId.current++, ...BLOCK_TYPES.heading_text.create() }]);
+    const nextSubject = "New Newsletter";
+    const nextBlocks = [{ id: nextId.current++, ...BLOCK_TYPES.heading_text.create() }];
+    setSubject(nextSubject);
+    setBlocks(nextBlocks);
+    setLoadedEdition(null);
+    setBaselineSnapshot(makeSnapshot(nextSubject, nextBlocks));
   };
 
   const handleImport = async () => {
     try {
       const data = await importDraftFile();
       if (data && Array.isArray(data.blocks)) {
-        setSubject(data.subject || "Newsletter");
-        setBlocks(data.blocks);
+        const nextSubject = data.subject || "Newsletter";
+        const nextBlocks = data.blocks;
+        setSubject(nextSubject);
+        setBlocks(nextBlocks);
+        nextId.current = getNextNumericId(nextBlocks);
+        setLoadedEdition(null);
+        setBaselineSnapshot(makeSnapshot(nextSubject, nextBlocks));
       }
     } catch (e) {
       alert("Could not read that file.");
     }
   };
 
+  const openSaveDialog = (mode) => {
+    setSaveMode(mode);
+    setIsSaveDialogOpen(true);
+  };
+
+  const handleEditionSaved = (edition) => {
+    const nextSubject = edition.subject || subject;
+    setSubject(nextSubject);
+    setLoadedEdition({
+      id: edition.id,
+      releaseDate: edition.releaseDate || getDefaultReleaseDate(),
+      status: edition.status || "draft",
+    });
+    setBaselineSnapshot(makeSnapshot(nextSubject, blocks));
+  };
+
+  const handleLoadEdition = async (editionId) => {
+    if (hasUnsavedChanges) {
+      const ok = confirm("Are you sure? Current draft will be lost.");
+      if (!ok) return false;
+    }
+
+    const edition = await getEdition(editionId);
+    const nextSubject = edition.subject || "Newsletter";
+    const nextBlocks = Array.isArray(edition.blocks) ? edition.blocks : [];
+
+    setSubject(nextSubject);
+    setBlocks(nextBlocks);
+    nextId.current = getNextNumericId(nextBlocks);
+    setLoadedEdition({
+      id: edition.id,
+      releaseDate: edition.releaseDate || getDefaultReleaseDate(),
+      status: edition.status || "draft",
+    });
+    setBaselineSnapshot(makeSnapshot(nextSubject, nextBlocks));
+    return true;
+  };
+
+  const handleSignOut = async () => {
+    setSignOutLoading(true);
+    try {
+      await signOut();
+      setLoadedEdition(null);
+      setMode("home");
+    } catch (e) {
+      alert(e?.message || "Could not sign out.");
+    } finally {
+      setSignOutLoading(false);
+    }
+  };
+
+  const handleSignIn = async () => {
+    setAuthError("");
+    setAuthLoading(true);
+    try {
+      await signInWithGoogle();
+    } catch (e) {
+      setAuthError(e?.message || "Could not start Google sign-in.");
+      setAuthLoading(false);
+    }
+  };
+
+  const startNewEdition = () => {
+    const nextSubject = "Untitled edition";
+    const nextBlocks = [{ id: nextId.current++, ...BLOCK_TYPES.heading_text.create() }];
+    setSubject(nextSubject);
+    setBlocks(nextBlocks);
+    setLoadedEdition(null);
+    setBaselineSnapshot(makeSnapshot(nextSubject, nextBlocks));
+    setMode("editor");
+  };
+
+  const openEditionFromHome = async (editionId) => {
+    const ok = await handleLoadEdition(editionId);
+    if (ok) setMode("editor");
+  };
+
+  const backToHome = () => {
+    if (hasUnsavedChanges) {
+      const ok = confirm("Leave editor? Unsaved changes will be lost.");
+      if (!ok) return;
+    }
+    setMode("home");
+  };
+
+  if (!user) {
+    return (
+      <div className="h-screen flex flex-col bg-stone-100">
+        <header className="bg-stone-900 text-stone-100 px-6 py-3 flex items-center gap-3 flex-shrink-0">
+          <div className="w-7 h-7 rounded bg-amber-400 flex items-center justify-center text-stone-900 font-bold text-sm">
+            N
+          </div>
+          <h1 className="text-sm font-semibold">Newsletter Builder</h1>
+        </header>
+        <main className="flex-1 flex items-center justify-center px-6">
+          <div className="max-w-md w-full bg-white rounded-xl border border-stone-200 shadow-sm p-8 text-center">
+            <div className="w-12 h-12 rounded-full bg-amber-400 text-stone-900 font-bold text-lg flex items-center justify-center mx-auto mb-4">
+              N
+            </div>
+            <h2 className="text-xl font-semibold text-stone-900">Welcome</h2>
+            <p className="text-sm text-stone-600 mt-2">
+              Sign in with your work Google account to view and edit shared editions.
+            </p>
+            <button
+              onClick={handleSignIn}
+              disabled={authLoading}
+              className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-full text-sm font-medium disabled:opacity-60"
+            >
+              <LogIn className="w-4 h-4" />
+              {authLoading ? "Signing in..." : "Sign in with Google"}
+            </button>
+            {authError && (
+              <p className="mt-3 text-xs text-red-600">{authError}</p>
+            )}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (mode === "home") {
+    return (
+      <EditionsHome
+        user={user}
+        onOpenEdition={openEditionFromHome}
+        onCreateNew={startNewEdition}
+        onSignOut={handleSignOut}
+        signOutLoading={signOutLoading}
+      />
+    );
+  }
+
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
       <div className="h-screen flex flex-col bg-stone-100">
         {/* Top bar */}
-        <header className="bg-stone-900 text-stone-100 px-6 py-3 flex items-center justify-between z-20 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded bg-amber-400 flex items-center justify-center text-stone-900 font-bold text-sm">
-              N
+        <header className="flex flex-col z-20 flex-shrink-0">
+          {/* Row 1: back, name, save, profile */}
+          <div className="bg-stone-900 text-stone-100 px-6 py-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={backToHome}
+                className="flex items-center gap-1 px-2 py-1 rounded text-[11px] bg-stone-800 hover:bg-stone-700"
+                title="Back to editions"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Editions
+              </button>
+              <div className="w-7 h-7 rounded bg-amber-400 flex items-center justify-center text-stone-900 font-bold text-sm">
+                N
+              </div>
+              <input
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                className="bg-transparent border-b border-stone-700 focus:border-amber-400 outline-none px-1 py-0.5 text-sm w-72"
+              />
             </div>
-            <input
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className="bg-transparent border-b border-stone-700 focus:border-amber-400 outline-none px-1 py-0.5 text-sm w-72"
-            />
+
+            <div className="flex items-center gap-2">
+              <SignInGate user={user}>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => openSaveDialog("create")}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 rounded text-xs"
+                    title="Save the current newsletter as a new named edition"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    Save as New Edition
+                  </button>
+                  {loadedEdition?.id && (
+                    <button
+                      onClick={() => openSaveDialog("update")}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-700 hover:bg-stone-600 rounded text-xs"
+                      title="Update the loaded edition"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      Update edition
+                    </button>
+                  )}
+                </div>
+              </SignInGate>
+
+              {user?.email && (
+                <div className="ml-2 pl-2 border-l border-stone-700 flex items-center gap-2">
+                  <div
+                    className="w-7 h-7 rounded-full bg-amber-400 text-stone-900 font-bold text-[11px] flex items-center justify-center"
+                    title={user.email}
+                  >
+                    {userInitials(user)}
+                  </div>
+                  <span className="text-[11px] text-stone-300 max-w-[180px] truncate" title={user.email}>
+                    {user.email}
+                  </span>
+                  <button
+                    onClick={handleSignOut}
+                    disabled={signOutLoading}
+                    className="flex items-center gap-1 px-2 py-1 rounded text-[11px] bg-stone-800 hover:bg-stone-700 disabled:opacity-60"
+                  >
+                    <LogOut className="w-3 h-3" />
+                    {signOutLoading ? "Signing out..." : "Sign out"}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-1 bg-stone-800 rounded p-1">
-            {[
-              { id: "edit", label: "Edit", icon: Edit3 },
-              { id: "preview", label: "Preview", icon: Eye },
-              { id: "html", label: "HTML", icon: Code },
-            ].map((t) => {
-              const Icon = t.icon;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setView(t.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs transition ${
-                    view === t.id
-                      ? "bg-stone-100 text-stone-900"
-                      : "text-stone-300 hover:text-white"
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
+          {/* Row 2: edit/preview, new, load, copy, download */}
+          <div className="bg-stone-800 text-stone-100 px-6 py-2 grid grid-cols-3 items-center border-t border-stone-700">
+            <div />
 
-          <div className="flex gap-2">
-            <button
-              onClick={handleNew}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 rounded text-xs"
-              title="Start a new newsletter (current draft downloads as JSON)"
-            >
-              <FilePlus className="w-3.5 h-3.5" />
-              New
-            </button>
-            <button
-              onClick={handleImport}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 rounded text-xs"
-              title="Load a saved draft JSON"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              Load
-            </button>
-            <button
-              onClick={copyHTML}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-700 hover:bg-stone-600 rounded text-xs"
-            >
-              <Copy className="w-3.5 h-3.5" />
-              {copied ? "Copied!" : "Copy HTML"}
-            </button>
-            <button
-              onClick={downloadHTML}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-stone-900 rounded text-xs font-medium"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Download
-            </button>
+            <div className="flex items-center justify-center">
+              <div className="flex items-center gap-1 bg-stone-900 rounded p-1">
+                {[
+                  { id: "edit", label: "Edit", icon: Edit3 },
+                  { id: "preview", label: "Preview", icon: Eye },
+                ].map((t) => {
+                  const Icon = t.icon;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => setView(t.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs transition ${
+                        view === t.id
+                          ? "bg-stone-100 text-stone-900"
+                          : "text-stone-300 hover:text-white"
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      {t.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={handleNew}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-900 hover:bg-stone-700 rounded text-xs"
+                title="Start a new newsletter (current draft downloads as JSON)"
+              >
+                <FilePlus className="w-3.5 h-3.5" />
+                New
+              </button>
+              <button
+                onClick={handleImport}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-900 hover:bg-stone-700 rounded text-xs"
+                title="Load a saved draft JSON"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                Load
+              </button>
+              <button
+                onClick={copyHTML}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-700 hover:bg-stone-600 rounded text-xs"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                {copied ? "Copied!" : "Copy HTML"}
+              </button>
+              <button
+                onClick={downloadHTML}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-stone-900 rounded text-xs font-medium"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Download
+              </button>
+            </div>
           </div>
         </header>
 
@@ -509,23 +781,28 @@ export default function App() {
                 </div>
               </div>
             )}
-
-            {view === "html" && (
-              <div className="w-full max-w-4xl">
-                <p className="text-xs text-stone-500 mb-3">
-                  Compiled email-safe HTML. Paste this into Sailthru.
-                </p>
-                <pre
-                  className="bg-stone-900 text-stone-100 text-xs p-5 rounded-lg overflow-auto"
-                  style={{ height: "calc(100vh - 180px)" }}
-                >
-                  <code>{compiled.html}</code>
-                </pre>
-              </div>
-            )}
           </main>
         </div>
       </div>
+
+      <SaveEditionDialog
+        isOpen={isSaveDialogOpen}
+        mode={saveMode}
+        editionId={loadedEdition?.id || null}
+        subject={subject}
+        blocks={blocks}
+        initialReleaseDate={loadedEdition?.releaseDate || getDefaultReleaseDate()}
+        initialStatus={loadedEdition?.status || "draft"}
+        onClose={() => setIsSaveDialogOpen(false)}
+        onSaved={handleEditionSaved}
+      />
+
+      <EditionsLibrary
+        isOpen={isLibraryOpen}
+        onClose={() => setIsLibraryOpen(false)}
+        onLoadEdition={handleLoadEdition}
+        activeEditionId={loadedEdition?.id || null}
+      />
 
       {/* Drag overlay */}
       <DragOverlay dropAnimation={null}>

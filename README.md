@@ -4,12 +4,32 @@ A drag-and-drop builder for HTML newsletters. Outputs email-safe HTML via [MJML]
 
 ## What this is
 
-- **Static site** — pure browser, no backend, no database.
+- **Static frontend** — Vite + React app deployed to GitHub Pages.
 - **MJML under the hood** — your blocks compile to bulletproof table-based HTML.
 - **Local autosave** — drafts persist in your browser via `localStorage`.
 - **Share drafts as JSON** — export/import for handing off between teammates.
+- **Shared editions via Supabase** — authenticated users can save, update, load, and delete named editions.
 
 ## Run locally
+
+Create a local env file before starting the app:
+
+```bash
+cp .env.example .env.local
+```
+
+Then fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env.local`.
+
+If your editions table is not in `public.editions`, also set:
+
+- `VITE_SUPABASE_DB_SCHEMA` (default: `public`)
+- `VITE_SUPABASE_EDITIONS_TABLE` (default: `editions`)
+
+For Google OAuth, you can optionally set:
+
+- `VITE_SUPABASE_AUTH_REDIRECT_TO` (default: current app URL)
+
+In Supabase Auth settings, ensure your site URL and redirect URL allow-list include your local URL and your GitHub Pages URL.
 
 ```bash
 npm install
@@ -65,4 +85,15 @@ MJML handles most edge cases, but dark mode behavior varies by client and is wor
 - `src/blocks/` — block definitions. Each has an editor component and a `toMJML()` function.
 - `src/lib/mjml.js` — wraps blocks in document scaffolding, runs `mjml-browser` to compile.
 - `src/lib/storage.js` — localStorage autosave + JSON file import/export.
-- `src/App.jsx` — top-level editor: palette, canvas, preview, HTML view, drag-and-drop via `@dnd-kit`.
+- `src/lib/supabase.js` — Supabase client initialization from Vite env variables.
+- `src/lib/auth.js` — Google sign-in/sign-out + auth user hook.
+- `src/lib/editions.js` — CRUD helpers for named editions in Supabase.
+- `src/App.jsx` — top-level editor: palette, canvas, preview, drag-and-drop via `@dnd-kit`, plus edition save/load controls.
+
+## Auth model
+
+- The editor remains open to everyone for local work (autosave + JSON import/export still work without sign-in).
+- Named edition storage is gated behind Google sign-in.
+- The app uses Supabase auth on the client (`signInWithOAuth` Google provider).
+- Supabase row-level security enforces domain-restricted access on the `editions` table.
+- In the UI, edition save/load actions are hidden behind sign-in, while core editing remains available.
